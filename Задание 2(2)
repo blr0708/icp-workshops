@@ -1,0 +1,145 @@
+//nadajnik
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h> 
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
+#define shm_key 1234
+#define shm_size 1024
+
+int main()
+{
+    //1. Создай сегмент общей памяти (shmget)
+    int shm_id = shmget(shm_key, shm_size, 0666 | IPC_CREAT);//ключ, размер, доступ
+    
+    //проверка
+    if(shm_id == -1)
+    {
+        perror("shmget error");
+        exit (1);
+    }
+    
+    // 2. Присоедини его к процессу (shmat)
+    char* buffer = (char*)shmat(shm_id, NULL, 0);//ключ, NULL, 0
+    
+    //проверка
+    if(buffer == (char*) -1)
+    {
+        perror("shmat error");
+        exit (1);
+    }
+    
+    // 3. Запиши строку в память (например, "CIEPLO")
+    
+    while(1)
+    {
+        strcpy(buffer, "CIEPLO");
+        sleep(1);
+        // 4. Подожди и запиши другую строку (например, "ZIMNO")
+        strcpy(buffer, "ZIMNO");
+        sleep(1);
+    }
+    shmctl(shm_id, IPC_RMID, NULL);//ключ, IPC_RMID, NULL
+    return 0;
+}
+
+//odbiornik
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h> 
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
+#define shm_key 1234
+#define shm_size 1024
+
+int main()
+{
+    //1. Создай сегмент общей памяти (shmget)
+    int shm_id = shmget(shm_key, shm_size, 0666 | IPC_CREAT);
+    //проверка
+    if(shm_id == -1)
+    {
+        perror("shmget error");
+        exit(1);
+    }
+    
+    // 2. Присоедини его к процессу (shmat)
+    char* buffer = (char*)shmat(shm_id, NULL,0);
+    //проверка
+    if(buffer == (char*)-1)
+    {
+        perror("shmat error");
+        exit(1);
+    }
+    //3 ПРИЕМ
+    while(1)
+    {
+        if(strcmp(buffer, "CIEPLO")  == 0  || strcmp(buffer, "ZIMNO") == 0 )
+        {
+            printf("messagee %s", buffer);
+        }
+        usleep(2000000);
+    }
+    shmctl(shm_id, IPC_RMID, NULL);
+    return 0;
+}
+
+ОДНА ПРОГРАММА
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h> 
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
+#define shm_key 1234
+#define shm_size 1024
+
+int main()
+{
+    //делаем shm_id с помощью shmget
+    int shm_id = shmget(shm_key, shm_size, 0666 | IPC_CREAT);
+    if(shm_id == -1)
+    {
+        perror("shmget error");
+        exit(1);
+    }
+    //создаем буффер с помощью shmat
+    char* buffer = (char*)shmat(shm_id, NULL, 0);
+    if(buffer == (char*)-1)
+    {
+        perror("shmat error");
+        exit(1);
+    }
+    pid_t child = fork();
+    if(child == 0)//дочерний
+    {
+        while(1)
+        {
+            if(strcmp(buffer, "CIEPLO") == 0 || strcmp(buffer, "ZIMNO") == 0)
+            {
+                printf("%s", buffer);
+            }
+            usleep(2000000);
+        }
+    }
+    else
+    {
+        while(1)
+        {
+            strcpy(buffer, "CIEPLO");
+            sleep(5);
+            strcpy(buffer, "ZIMNO");
+            sleep(5);
+        }
+    }
+    shmctl(shm_id, IPC_RMID, NULL);
+    return 0;
+}
+
