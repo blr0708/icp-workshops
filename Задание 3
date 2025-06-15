@@ -1,0 +1,30 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+int main()
+{
+    char *variable = getenv("number");
+    int number =atoi(variable);
+    srand(time(NULL));
+
+    char str[number*2+1];
+    int i;
+    for (i = 0; i < number*2; i++)
+    {
+    str[i] = 'a' + rand() % 32;
+    }
+    str[i] = '\0';
+    printf("%s\n", str);
+
+    FILE *fptr;
+
+    // Create a file
+    fptr = fopen("filename15.txt", "w");
+
+    fprintf(fptr, "%s\n", str);
+    // Close the file
+    fclose(fptr);
+
+    return 0;
+}
