@@ -1,0 +1,120 @@
+#include<stdio.h>
+#include<string.h>
+#include<unistd.h>
+#include<sys/ipc.h>
+#include<sys/shm.h>
+#include <stdlib.h>
+#include <time.h>
+#include <stdbool.h>
+#include <pthread.h>
+
+#define size 10
+
+int tab[size];
+
+  int compare(const void *a, const void *b) 
+  {
+      return (*(int*)a - *(int*)b);
+  }
+
+void* fun (void* arg)
+{
+    srand(time( 0 ) );
+    int* tab = (int*) arg;
+    for(int i = 0;i<size;i++)
+    {
+        tab[i] = rand() % 10 + 1;
+    }
+    qsort(tab, 10, sizeof(int), compare);
+    for(int i = 0;i<10;i++)
+    {
+        printf("%d ", tab[i]);
+    }
+}
+
+int main()
+{
+    srand(time( 0 ) );
+    pthread_t id;
+    pthread_create(&id, NULL, fun, (void*) tab);
+    pthread_join(id, NULL);
+    return 0;
+}
+
+//2 инкрементация 
+// #include <stdio.h>
+// #include <pthread.h>
+// #include <unistd.h> // Подключим для usleep, если понадобится
+
+// int globalna_zmienna = 0;
+
+// void* funkcja(void* arg)
+// {
+//     for(int i = 0; i < 10000000; ++i) 
+//     {
+//         globalna_zmienna++;
+//     }
+//     return NULL;
+// }
+
+// int main()
+// {
+//     pthread_t watek;
+//     printf("Начальное значение: %d\n", globalna_zmienna);
+    
+//     pthread_create(&watek, NULL, funkcja, NULL);
+//     for(int i = 0; i < 10000000; ++i) 
+//     {
+//         globalna_zmienna++;
+//     }
+//     pthread_join(watek, NULL);
+    
+//     printf("\nОжидаемый результат: 20\n");
+//     printf("Фактический результат: %d\n", globalna_zmienna);
+//     return 0;
+// }
+
+//3 мьютексы
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h> 
+
+int globalna_zmienna = 0;
+
+// Добавляем объявление мьютекса
+pthread_mutex_t moj_mutex;
+
+void* funkcja(void* arg)
+{
+    for(int i = 0; i < 10000000; ++i) 
+    {
+        pthread_mutex_lock(&moj_mutex); // Взяли ключ
+        globalna_zmienna++;             // Сделали запись в книжке
+        pthread_mutex_unlock(&moj_mutex); // Повесили ключ на место
+    }
+    return NULL;
+}
+
+int main()
+{
+    pthread_t watek;
+    printf("Начальное значение: %d\n", globalna_zmienna);
+    
+    pthread_mutex_init(&moj_mutex, NULL);// Инициализируем мьютекс со стандартными атрибутами
+    
+    pthread_create(&watek, NULL, funkcja, NULL);
+    for(int i = 0; i < 10000000; ++i) 
+    {
+        pthread_mutex_lock(&moj_mutex); // Взяли ключ
+        globalna_zmienna++;             // Сделали запись в книжке
+        pthread_mutex_unlock(&moj_mutex); // Повесили ключ на место
+    }
+    pthread_join(watek, NULL);
+     // Уничтожаем мьютекс
+    pthread_mutex_destroy(&moj_mutex);
+    
+    printf("\nОжидаемый результат: 20\n");
+    printf("Фактический результат: %d\n", globalna_zmienna);
+    return 0;
+}
+
