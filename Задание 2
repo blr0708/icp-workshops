@@ -1,0 +1,10 @@
+script bash to add task to crontab
+Napisz skrypt Bash, który doda zadanie do crontaba. To zadanie ma uruchamiać skrypt zad1.sh
+co $hours godzin.
+
+#!/bin/bash
+crontab -l > mycron
+echo "0 */$hours * * * zad1_kol1.sh" > mycron
+crontab mycron
+rm mycron
+#/home/system/zad1_kol1.sh лучше так
