@@ -1,0 +1,3 @@
+Uruchom skrypt test_stu.py z dwoma argumentami. Zapisz wynik działania skryptu do pliku zad1.txt.
+#!/bin/bash
+python3 "/home/system/Pobrane/test_stu.py" 10 $number > zaad1.txt
