@@ -1,0 +1,24 @@
+display ls -l with execl
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+int main()
+{
+    printf("Początek");
+    pid_t child = fork();
+    if(child == 0)
+    {
+        execl("/bin/ls", "ls", "-l", (char *)0);
+    }
+    else
+    {
+        wait(NULL);
+    }
+    printf("Koniec");
+    return 0;
+}
